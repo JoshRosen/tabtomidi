@@ -62,7 +62,7 @@ class Tab(object):
         # Also, some songs have half a bar of extra notes at the beginning.
 
 
-    def generateMIDIFile(self):
+    def writeMIDIFile(self, path):
         tab = self._tab
         m = MIDIFile(1)
         track = 0
@@ -94,8 +94,9 @@ class Tab(object):
                     c = nextLineColumn
                 else:
                     break
-        binfile = open("output.mid", 'wb')
+        binfile = open(path, 'wb')
         m.writeFile(binfile)
+        print "Writing midi file to path %s" % path
         binfile.close()
 
 
@@ -158,10 +159,11 @@ class Tab(object):
         bar division.
         """
         tab = self._tab
-        for c in xrange(startColumn, len(tab[0])):
+        for c in xrange(startColumn, len(tab[startRow])):
             if self._isVerticalLine(c, startRow):
                 return c
-        return -1 # todo: throw an exception
+        return -1 # todo: raise exception instead.
+        raise Exception("No Vertical Line Found")
 
     def _isVerticalLine(self, column, startRow):
         tab = self._tab
@@ -193,7 +195,7 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-    s = open("ref.txt").read()
+    s = open("testdata/simple_4_4_beat.txt").read()
     t = Tab(s)
     print t.divisionsInBar
     print t._barRows
@@ -203,4 +205,4 @@ if __name__ == "__main__":
             print "%s   :   %s" % (n, noteTypeToGMNote[n])
         else:
             print "Note type %s not found" % n
-    t.generateMIDIFile()
+    t.writeMIDIFile("output.mid")
