@@ -2,12 +2,19 @@ import difflib
 from filecmp import cmp
 from drumtabs import Tab
 
-def test_simple_4_4_beat(tmpdir):
-    actual = tmpdir.join("simple_4_4_beat.mid").strpath
-    expected = "testdata/simple_4_4_beat.mid"
+output_verification_tests = [
+    ('simple_4_4_beat', {'tab' : 'testdata/simple_4_4_beat.txt',
+                         'expected_midi' : 'testdata/simple_4_4_beat.mid'})
+]
 
-    t = Tab(file("testdata/simple_4_4_beat.txt").read())
-    assert t._BPM == 100
+def pytest_generate_tests(metafunc):
+    if metafunc.function == test_generated_midi_matches_expected_midi:
+        for test in output_verification_tests:
+            metafunc.addcall(id=test[0], funcargs=test[1])
 
-    t.writeMIDIFile(actual)
-    assert cmp(actual, expected)
+def test_generated_midi_matches_expected_midi(tmpdir, tab, expected_midi):
+    actual_midi = tmpdir.join("actual.mid").strpath
+
+    t = Tab(file(tab).read())
+    t.writeMIDIFile(open(actual_midi, "wb"))
+    assert cmp(actual_midi, expected_midi)

@@ -22,6 +22,7 @@ GM = {
 
 noteTypeToGMNote = {
     'C1'  : GM['CRASH_1'],
+    'C'  : GM['CRASH_1'],
     'CC'  : GM['CRASH_1'],
     'c1'  : GM['CRASH_1'],
     'C2'  : GM['CRASH_2'],
@@ -32,6 +33,7 @@ noteTypeToGMNote = {
     'T2' : GM['HIGH_MID_TOM'],
     'F1' : GM['HIGH_FLOOR_TOM'],
     'F2' : GM['LOW_FLOOR_TOM'],
+    'F' : GM['LOW_FLOOR_TOM'],
     'B'  : GM['ACOUSTIC_BASS'],
     'BD'  : GM['ACOUSTIC_BASS'],
     'S'  : GM['ACOUSTIC_SNARE'],
@@ -39,6 +41,7 @@ noteTypeToGMNote = {
     'Hf' : GM['PEDAL_HI_HAT'],
     'hh' : GM['CLOSED_HI_HAT'],
     'HH' : GM['CLOSED_HI_HAT'],
+    'H' : GM['CLOSED_HI_HAT'],
     'Sp' : GM['SPLASH'],
     'sp' : GM['SPLASH'],
 }
@@ -62,7 +65,7 @@ class Tab(object):
         # Also, some songs have half a bar of extra notes at the beginning.
 
 
-    def writeMIDIFile(self, path):
+    def writeMIDIFile(self, file):
         tab = self._tab
         m = MIDIFile(1)
         track = 0
@@ -94,10 +97,7 @@ class Tab(object):
                     c = nextLineColumn
                 else:
                     break
-        binfile = open(path, 'wb')
-        m.writeFile(binfile)
-        print "Writing midi file to path %s" % path
-        binfile.close()
+        m.writeFile(file)
 
 
     def _calculateBarRows(self):
@@ -156,14 +156,14 @@ class Tab(object):
     def _findVerticalLine(self, startColumn=0, startRow=0):
         """
         Returns the first column on or after startColumn that is a vertical line /
-        bar division.
+        bar division.  If no column is found, returns None.
         """
         tab = self._tab
         for c in xrange(startColumn, len(tab[startRow])):
             if self._isVerticalLine(c, startRow):
                 return c
-        return -1 # todo: raise exception instead.
-        raise Exception("No Vertical Line Found")
+        return None
+
 
     def _isVerticalLine(self, column, startRow):
         tab = self._tab
@@ -177,13 +177,18 @@ class Tab(object):
         else:
             return False
 
+
     def _calculateDivisionsInBar(self, row):
         """
         Returns the number of divisions in the bar whose top row is the given row.
         """
         # todo: handle not being able to find vertical lines
         start = self._findVerticalLine(0, row)
+        if not start:
+            raise Exception("Could not find starting vertical bar.")
         end = self._findVerticalLine(start + 1, row)
+        if not end:
+            raise Exception("Could not find end vertical bar.")
         return end - start - 1
 
 
@@ -195,7 +200,7 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-    s = open("testdata/simple_4_4_beat.txt").read()
+    s = open("test.txt").read()
     t = Tab(s)
     print t.divisionsInBar
     print t._barRows
@@ -205,4 +210,4 @@ if __name__ == "__main__":
             print "%s   :   %s" % (n, noteTypeToGMNote[n])
         else:
             print "Note type %s not found" % n
-    t.writeMIDIFile("output.mid")
+    t.writeMIDIFile(open("output.mid"))
