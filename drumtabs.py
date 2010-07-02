@@ -20,7 +20,7 @@ GM = {
     'CRASH_2'  : 57,
 }
 
-noteTypeToGMNote = {
+defaultNoteNameToNoteNumberMap = {
     'C1'  : GM['CRASH_1'],
     'C'  : GM['CRASH_1'],
     'CC'  : GM['CRASH_1'],
@@ -31,7 +31,9 @@ noteTypeToGMNote = {
     'Ch' : GM['CHINA'],
     'T1' : GM['HIGH_TOM'],
     'T2' : GM['HIGH_MID_TOM'],
+    'T' : GM['HIGH_MID_TOM'],
     'F1' : GM['HIGH_FLOOR_TOM'],
+    'f' : GM['HIGH_FLOOR_TOM'],
     'F2' : GM['LOW_FLOOR_TOM'],
     'F' : GM['LOW_FLOOR_TOM'],
     'B'  : GM['ACOUSTIC_BASS'],
@@ -46,17 +48,49 @@ noteTypeToGMNote = {
     'sp' : GM['SPLASH'],
 }
 
+
+class TabParsingException(Exception):
+    """
+    Base class for all exceptions due to unparsable tabs.
+    """
+
+    def __init__(self, message, row=None, column=None):
+        Exception.__init__(self, message)
+        self.row = row
+        self.column = column
+
+
+class UnmappableNoteNamesException(TabParsingException):
+    """
+    Raised when the parser cannot map one or more note names to midi notes.
+    The noteNames attribute provides the set of unmappable note names.
+    """
+
+    def __init__(self, noteNames):
+        Exception.__init__(self,
+            "Some note names could not be mapped to midi notes")
+        self.noteNames = noteNames
+
+
 class Tab(object):
+    """
+    Provides information about drum tabs and generates midi files from them.
+    """
 
-
-    def __init__(self, s):
+    def __init__(self, tabtext, noteNameToNoteNumberMap=defaultNoteNameToNoteNumberMap, bpm=100):
         """
-        Construct a Tab object from a string representing a tab.
+        Constructs a Tab object from a string representing a tab.
         """
-        self._tab = list(dropwhile((lambda x: x.strip() == ""), s.splitlines()))
+        self._tab = tabtext.splitlines()
+        self._BPM = bpm
+        self._noteNameToNoteNumberMap = noteNameToNoteNumberMap
         self._barRows = self._calculateBarRows()
         self._noteTypes = self._findAllNoteTypes()
-        self._BPM = 100
+        # Throw an exception if there are note names for which we can't
+        # determine the proper note numbers.
+        unmappalbeNoteNames = self._noteTypes.difference(self._noteNameToNoteNumberMap.keys())
+        if unmappalbeNoteNames:
+            raise UnmappableNoteNamesException(unmappalbeNoteNames)
         self.divisionsInBar = self._calculateDivisionsInBar(self._barRows[0])
         # Assuming that all bar have same number of divisions.
         # Some tabs have extra characters between the bars, i.e. 33 instead of
@@ -66,6 +100,9 @@ class Tab(object):
 
 
     def writeMIDIFile(self, file):
+        """
+        Writes midi generated from this tab to the given file object.
+        """
         tab = self._tab
         m = MIDIFile(1)
         track = 0
@@ -86,7 +123,7 @@ class Tab(object):
                     for d in xrange(0, len(noteTypes)): # For every drum in this bar
                         if tab[r + d][c + t] != '-':
                             try:
-                                pitch = noteTypeToGMNote[noteTypes[d]]
+                                pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
                             except KeyError:
                                 pitch = 0 # TODO: fix this
                             m.addNote(track, channel, pitch, time, duration, volume)
@@ -150,7 +187,7 @@ class Tab(object):
         """
         tab = self._tab
         noteType, sep, notes = tab[row].partition('|')
-        return noteType.strip()
+        return noteType.strip().rstrip(':-')
 
 
     def _findVerticalLine(self, startColumn=0, startRow=0):
@@ -166,6 +203,10 @@ class Tab(object):
 
 
     def _isVerticalLine(self, column, startRow):
+        """
+        Returns True if the column contains an unbroken vertical line starting
+        from the startRow.
+        """
         tab = self._tab
         if tab[startRow][column] == '|':
             for r in xrange(startRow, len(tab)):
@@ -182,13 +223,12 @@ class Tab(object):
         """
         Returns the number of divisions in the bar whose top row is the given row.
         """
-        # todo: handle not being able to find vertical lines
         start = self._findVerticalLine(0, row)
         if not start:
-            raise Exception("Could not find starting vertical bar.")
+            raise TabParsingException("Could not find starting vertical bar.", 0, row)
         end = self._findVerticalLine(start + 1, row)
         if not end:
-            raise Exception("Could not find end vertical bar.")
+            raise TabParsingException("Could not find end vertical bar.", start + 1, row)
         return end - start - 1
 
 
