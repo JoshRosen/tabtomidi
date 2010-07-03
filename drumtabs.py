@@ -1,4 +1,5 @@
 import code
+import string
 from itertools import dropwhile
 from midiutil.MidiFile import MIDIFile
 
@@ -113,24 +114,33 @@ class Tab(object):
         m.addTrackName(track, time, "")
         m.addTempo(track, time, self._BPM)
         for r in self._barRows:
+            # Determine whether the first row contains notes or repetition information.
+            if not self._findNoteType(r):
+                repSkip = 1
+            else:
+                repSkip = 0
             # Determine which drums are present in this group of bars.
-            noteTypes = self._findNoteTypesForRow(r)
+            noteTypes = self._findNoteTypesForRow(r+repSkip)
             # The following assumes that there are as many entries in noteTypes
             # as there are vertical lines in the bar.
-            c = self._findVerticalLine(startRow=r)
-            while c < len(tab[r]):
-                for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
-                    for d in xrange(0, len(noteTypes)): # For every drum in this bar
-                        if tab[r + d][c + t] != '-':
-                            try:
+            c = self._findVerticalLine(startRow=r+repSkip)
+            while c < len(tab[r+repSkip]):
+                # Determine how many times this bar is repeated
+                if repSkip:
+                    repetitions = self._calculateBarRepetitions(r, c)
+                else:
+                    repetitions = 1
+                print repetitions
+                for _ in xrange(repetitions):
+                    for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
+                        for d in xrange(0, len(noteTypes)): # For every drum in this bar
+                            if tab[r + d + repSkip][c + t] != '-':
                                 pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
-                            except KeyError:
-                                pitch = 0 # TODO: fix this
-                            m.addNote(track, channel, pitch, time, duration, volume)
-                    time += duration
+                                m.addNote(track, channel, pitch, time, duration, volume)
+                        time += duration
                 # Check if there are more bars
                 nextLineColumn = c + self.divisionsInBar + 1
-                if self._isVerticalLine(nextLineColumn, r) and nextLineColumn < len(tab[r]) - 1:
+                if self._isVerticalLine(nextLineColumn, r+repSkip) and nextLineColumn < len(tab[r+repSkip]) - 1:
                     c = nextLineColumn
                 else:
                     break
@@ -232,6 +242,20 @@ class Tab(object):
         return end - start - 1
 
 
+    def _calculateBarRepetitions(self, row, column):
+        """
+        Determines how many times the current bar is played.
+        """
+        tab = self._tab
+        # TODO: handle the case where this row at this column is padded out
+        # with whitespace or is shorter than the rows below it.
+        thisBar = tab[row][column+1:column+self.divisionsInBar+1].strip('- ' + string.ascii_letters)
+        if thisBar:
+            return int(thisBar)
+        else:
+            return 1
+
+
 # todo: automatic time signature determination
 
 def _test():
@@ -242,12 +266,4 @@ if __name__ == "__main__":
     _test()
     s = open("test.txt").read()
     t = Tab(s)
-    print t.divisionsInBar
-    print t._barRows
-    print t._noteTypes
-    for n in t._noteTypes:
-        if n in noteTypeToGMNote.keys():
-            print "%s   :   %s" % (n, noteTypeToGMNote[n])
-        else:
-            print "Note type %s not found" % n
-    t.writeMIDIFile(open("output.mid"))
+    t.writeMIDIFile(open("output.mid", "wb"))

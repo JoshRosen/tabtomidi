@@ -3,8 +3,14 @@ from filecmp import cmp
 from drumtabs import Tab
 
 output_verification_tests = [
-    ('simple_4_4_beat', {'tab' : 'testdata/simple_4_4_beat.txt',
-                         'expected_midi' : 'testdata/simple_4_4_beat.mid'})
+    ('simple_4_4_beat',     {'tab' : 'testdata/simple_4_4_beat.txt',
+                             'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
+    ('repetition_4x',       {'tab' : 'testdata/repetition_4x.txt',
+                             'expected_midi' : 'testdata/repetition_4x.mid'}),
+    ('repetition_2x_2x',    {'tab' : 'testdata/repetition_2x_2x.txt',
+                             'expected_midi' : 'testdata/repetition_4x.mid'}),
+    ('repetition_1x_2x_1x', {'tab' : 'testdata/repetition_1x_2x_1x.txt',
+                             'expected_midi' : 'testdata/repetition_4x.mid'})
 ]
 
 def pytest_generate_tests(metafunc):
