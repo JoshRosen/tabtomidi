@@ -1,9 +1,5 @@
-import code
 import string
-from itertools import dropwhile
 from midiutil.MidiFile import MIDIFile
-
-# TODO: handle repeated bars
 
 GM = {
     'ACOUSTIC_BASS' : 35,
