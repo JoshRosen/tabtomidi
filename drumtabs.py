@@ -1,49 +1,6 @@
 import string
 from midiutil.MidiFile import MIDIFile
-
-GM = {
-    'ACOUSTIC_BASS' : 35,
-    'ACOUSTIC_SNARE' : 38,
-    'CLOSED_HI_HAT' : 42,
-    'HIGH_FLOOR_TOM' : 43,
-    'PEDAL_HI_HAT' : 44,
-    'LOW_FLOOR_TOM' : 45,
-    'CRASH_1'  : 49,
-    'HIGH_MID_TOM' : 48,
-    'HIGH_TOM' : 50,
-    'RIDE_1'   : 51,
-    'CHINA'    : 52,
-    'SPLASH'   : 55,
-    'CRASH_2'  : 57,
-}
-
-defaultNoteNameToNoteNumberMap = {
-    'C1'  : GM['CRASH_1'],
-    'C'  : GM['CRASH_1'],
-    'CC'  : GM['CRASH_1'],
-    'c1'  : GM['CRASH_1'],
-    'C2'  : GM['CRASH_2'],
-    'R'  : GM['RIDE_1'],
-    'CH' : GM['CHINA'],
-    'Ch' : GM['CHINA'],
-    'T1' : GM['HIGH_TOM'],
-    'T2' : GM['HIGH_MID_TOM'],
-    'T' : GM['HIGH_MID_TOM'],
-    'F1' : GM['HIGH_FLOOR_TOM'],
-    'f' : GM['HIGH_FLOOR_TOM'],
-    'F2' : GM['LOW_FLOOR_TOM'],
-    'F' : GM['LOW_FLOOR_TOM'],
-    'B'  : GM['ACOUSTIC_BASS'],
-    'BD'  : GM['ACOUSTIC_BASS'],
-    'S'  : GM['ACOUSTIC_SNARE'],
-    'SN'  : GM['ACOUSTIC_SNARE'],
-    'Hf' : GM['PEDAL_HI_HAT'],
-    'hh' : GM['CLOSED_HI_HAT'],
-    'HH' : GM['CLOSED_HI_HAT'],
-    'H' : GM['CLOSED_HI_HAT'],
-    'Sp' : GM['SPLASH'],
-    'sp' : GM['SPLASH'],
-}
+from notenames import defaultNoteNameToNoteNumberMap
 
 
 class TabParsingException(Exception):
