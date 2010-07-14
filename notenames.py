@@ -82,9 +82,12 @@ GMSpecDrumNameToMidiNote = {
 defaultNoteNameToNoteNumberMap = {
     'B'  : GMSpecDrumNameToMidiNote['Acoustic Bass Drum'],
     'C'  : GMSpecDrumNameToMidiNote['Crash Cymbal 1'],
+    'C1' : GMSpecDrumNameToMidiNote['Crash Cymbal 1'],
     'CC' : GMSpecDrumNameToMidiNote['Crash Cymbal 1'],
     'f'  : GMSpecDrumNameToMidiNote['High Floor Tom'],
     'F'  : GMSpecDrumNameToMidiNote['Low Floor Tom'],
+    'F1' : GMSpecDrumNameToMidiNote['High Floor Tom'],
+    'F2' : GMSpecDrumNameToMidiNote['Low Floor Tom'],
     'H'  : GMSpecDrumNameToMidiNote['Closed Hi-Hat'],
     'Hf' : GMSpecDrumNameToMidiNote['Pedal Hi-Hat'],
     'HH' : GMSpecDrumNameToMidiNote['Closed Hi-Hat'],
@@ -94,4 +97,6 @@ defaultNoteNameToNoteNumberMap = {
     # Not sure about this
     't'  : GMSpecDrumNameToMidiNote['High Tom'],
     'T'  : GMSpecDrumNameToMidiNote['Low Tom'],
+    'T1' : GMSpecDrumNameToMidiNote['High Tom'],
+    'T2' : GMSpecDrumNameToMidiNote['Low Tom'],
 }
