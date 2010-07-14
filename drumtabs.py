@@ -1,6 +1,6 @@
 import string
 from midiutil.MidiFile import MIDIFile
-from notenames import defaultNoteNameToNoteNumberMap
+from notenames import defaultNoteNameToNoteNumberMap, GMSpecDrumNameToMidiNote
 
 
 class TabParsingException(Exception):
@@ -31,20 +31,22 @@ class Tab(object):
     Provides information about drum tabs and generates midi files from them.
     """
 
-    def __init__(self, tabtext, noteNameToNoteNumberMap=defaultNoteNameToNoteNumberMap, bpm=100):
+    def __init__(self, tabtext, noteNameToNoteNumberMap=defaultNoteNameToNoteNumberMap, bpm=100,
+                 strikeVolume=70, accentVolume=110, ghostNoteVolume=50):
         """
         Constructs a Tab object from a string representing a tab.
         """
         self._tab = tabtext.splitlines()
         self._BPM = bpm
-        self._noteNameToNoteNumberMap = noteNameToNoteNumberMap
+        self._strikeVolume = strikeVolume
+        self._accentVolume = accentVolume
+        self._ghostNoteVolume= ghostNoteVolume
         self._barRows = self._calculateBarRows()
         self._noteTypes = self._findAllNoteTypes()
-        # Throw an exception if there are note names for which we can't
-        # determine the proper note numbers.
-        unmappalbeNoteNames = self._noteTypes.difference(self._noteNameToNoteNumberMap.keys())
-        if unmappalbeNoteNames:
-            raise UnmappableNoteNamesException(unmappalbeNoteNames)
+        # Filter out notes from noteNameToNoteNumberMap that do not appear in this tab
+        self._noteNameToNoteNumberMap = \
+            dict((note, noteNameToNoteNumberMap[note]) for note in
+            noteNameToNoteNumberMap.keys() if note in self._noteTypes)
         self.divisionsInBar = self._calculateDivisionsInBar(self._barRows[0])
         # Assuming that all bar have same number of divisions.
         # Some tabs have extra characters between the bars, i.e. 33 instead of
@@ -57,13 +59,18 @@ class Tab(object):
         """
         Writes midi generated from this tab to the given file object.
         """
+        # Throw an exception if there are note names for which we can't
+        # determine the proper note numbers.
+        unmappalbeNoteNames = self._noteTypes.difference(self._noteNameToNoteNumberMap.keys())
+        if unmappalbeNoteNames:
+            raise UnmappableNoteNamesException(unmappalbeNoteNames)
+
         tab = self._tab
         m = MIDIFile(1)
         track = 0
         time = 0
         channel = 9 # Should be channel 10; there may be an off-by-one error in midiutil
         duration = 4.0 / self.divisionsInBar # 4.0 is because midiutil's unit of time is the quarter note.
-        volume = 70 # there are 127 volume steps, probably need a better default
         m.addTrackName(track, time, "")
         m.addTempo(track, time, self._BPM)
         for r in self._barRows:
@@ -83,12 +90,27 @@ class Tab(object):
                     repetitions = self._calculateBarRepetitions(r, c)
                 else:
                     repetitions = 1
-                print repetitions
                 for _ in xrange(repetitions):
                     for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
                         for d in xrange(0, len(noteTypes)): # For every drum in this bar
-                            if tab[r + d + repSkip][c + t] != '-':
+                            hitType = tab[r + d + repSkip][c + t]
+                            if hitType == '-':
+                                continue
+                            elif hitType == 'o' or hitType == 'x':
                                 pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
+                                volume = self._strikeVolume
+                                m.addNote(track, channel, pitch, time, duration, volume)
+                            elif hitType == 'O':
+                                pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
+                                volume = self._accentVolume
+                                m.addNote(track, channel, pitch, time, duration, volume)
+                            elif hitType == 'g':
+                                pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
+                                volume = self._ghostNoteVolume
+                                m.addNote(track, channel, pitch, time, duration, volume)
+                            elif hitType == 'r':
+                                pitch = GMSpecDrumNameToMidiNote['Sticks']
+                                volume = self._strikeVolume
                                 m.addNote(track, channel, pitch, time, duration, volume)
                         time += duration
                 # Check if there are more bars
