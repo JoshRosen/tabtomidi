@@ -11,7 +11,9 @@ output_verification_tests = [
     ('repetition_2x_2x',    {'tab' : 'testdata/repetition_2x_2x.txt',
                              'expected_midi' : 'testdata/repetition_4x.mid'}),
     ('repetition_1x_2x_1x', {'tab' : 'testdata/repetition_1x_2x_1x.txt',
-                             'expected_midi' : 'testdata/repetition_4x.mid'})
+                             'expected_midi' : 'testdata/repetition_4x.mid'}),
+    ('unknown_strike_types',{'tab' : 'testdata/unknown_strike_types.txt',
+                             'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
 ]
 
 
@@ -24,6 +26,11 @@ def test_string_without_tab():
         An custom exception should be thrown
         if we try to generate a tab from this.
         """)
+
+
+def test_unknown_strike_types_are_identified():
+    t = Tab(file('testdata/unknown_strike_types.txt').read())
+    assert t._unknownStrikeTypes == set(['Q', 'S', 'X', 'Z', 'z'])
 
 
 def pytest_generate_tests(metafunc):

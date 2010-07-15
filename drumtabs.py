@@ -55,11 +55,46 @@ class Tab(object):
         # 32, so simply counting the number of characters between the bars will not
         # always work.
         # Also, some songs have half a bar of extra notes at the beginning.
+        self._strikeTypes = self._findAllStrikeTypes()
+        self._unknownStrikeTypes = self._strikeTypes.difference(set('-Ogro'))
 
 
     def writeMIDIFile(self, file):
         """
         Writes midi generated from this tab to the given file object.
+        """
+        m = MIDIFile(1)
+        track = 0
+        channel = 9 # Should be channel 10; there may be an off-by-one error in midiutil
+        duration = 4.0 / self.divisionsInBar # 4.0 is because midiutil's unit of time is the quarter note.
+        pitch = 0
+        volume = 0
+        m.addTrackName(track, 0, "")
+        m.addTempo(track, 0, self._BPM)
+        for note in self.walkNotes():
+            strike_type = note['strike_type']
+            if strike_type == 'O':
+                pitch = self._noteNameToNoteNumberMap[note['note_type']]
+                volume = self._accentVolume
+            elif strike_type == 'g':
+                pitch = self._noteNameToNoteNumberMap[note['note_type']]
+                volume = self._ghostNoteVolume
+            elif strike_type == 'r':
+                pitch = GMSpecDrumNameToMidiNote['Sticks']
+                volume = self._strikeVolume
+            elif strike_type == 'o':
+                pitch = self._noteNameToNoteNumberMap[note['note_type']]
+                volume = self._strikeVolume
+            else:
+                pitch = self._noteNameToNoteNumberMap[note['note_type']]
+                volume = self._strikeVolume
+            m.addNote(track, channel, pitch, note['time'], duration, volume)
+        m.writeFile(file)
+
+
+    def walkNotes(self, ignore_repetition=False):
+        """
+        A generator that yields each note in order.
         """
         # Throw an exception if there are note names for which we can't
         # determine the proper note numbers.
@@ -68,13 +103,8 @@ class Tab(object):
             raise UnmappableNoteNamesException(unmappalbeNoteNames)
 
         tab = self._tab
-        m = MIDIFile(1)
-        track = 0
         time = 0
-        channel = 9 # Should be channel 10; there may be an off-by-one error in midiutil
         duration = 4.0 / self.divisionsInBar # 4.0 is because midiutil's unit of time is the quarter note.
-        m.addTrackName(track, time, "")
-        m.addTempo(track, time, self._BPM)
         for r in self._barRows:
             # Determine whether the first row contains notes or repetition information.
             if not self._findNoteType(r):
@@ -88,32 +118,20 @@ class Tab(object):
             c = self._findVerticalLine(startRow=r+repSkip)
             while c < len(tab[r+repSkip]):
                 # Determine how many times this bar is repeated
-                if repSkip:
+                if repSkip and not ignore_repetition:
                     repetitions = self._calculateBarRepetitions(r, c)
                 else:
                     repetitions = 1
                 for _ in xrange(repetitions):
                     for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
                         for d in xrange(0, len(noteTypes)): # For every drum in this bar
-                            hitType = tab[r + d + repSkip][c + t]
-                            if hitType == '-':
+                            strike_type = tab[r + d + repSkip][c + t]
+                            if strike_type == '-':
                                 continue
-                            elif hitType == 'o' or hitType == 'x':
-                                pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
-                                volume = self._strikeVolume
-                                m.addNote(track, channel, pitch, time, duration, volume)
-                            elif hitType == 'O':
-                                pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
-                                volume = self._accentVolume
-                                m.addNote(track, channel, pitch, time, duration, volume)
-                            elif hitType == 'g':
-                                pitch = self._noteNameToNoteNumberMap[noteTypes[d]]
-                                volume = self._ghostNoteVolume
-                                m.addNote(track, channel, pitch, time, duration, volume)
-                            elif hitType == 'r':
-                                pitch = GMSpecDrumNameToMidiNote['Sticks']
-                                volume = self._strikeVolume
-                                m.addNote(track, channel, pitch, time, duration, volume)
+                            else:
+                                yield { 'strike_type' : strike_type,
+                                        'note_type' : noteTypes[d],
+                                        'time' : time, }
                         time += duration
                 # Check if there are more bars
                 nextLineColumn = c + self.divisionsInBar + 1
@@ -121,7 +139,6 @@ class Tab(object):
                     c = nextLineColumn
                 else:
                     break
-        m.writeFile(file)
 
 
     def _calculateBarRows(self):
@@ -175,6 +192,17 @@ class Tab(object):
         tab = self._tab
         noteType, sep, notes = tab[row].partition('|')
         return noteType.strip().rstrip(':-')
+
+
+    def _findAllStrikeTypes(self):
+        """
+        Returns the set of strike types.
+        """
+        tab = self._tab
+        types = set()
+        for note in self.walkNotes(ignore_repetition=True):
+            types.update(note['strike_type'])
+        return types
 
 
     def _findVerticalLine(self, startColumn=0, startRow=0):
