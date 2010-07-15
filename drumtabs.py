@@ -63,6 +63,12 @@ class Tab(object):
         """
         Writes midi generated from this tab to the given file object.
         """
+        # Throw an exception if there are note names for which we can't
+        # determine the proper note numbers.
+        unmappalbeNoteNames = self._noteTypes.difference(self._noteNameToNoteNumberMap.keys())
+        if unmappalbeNoteNames:
+            raise UnmappableNoteNamesException(unmappalbeNoteNames)
+
         m = MIDIFile(1)
         track = 0
         channel = 9 # Should be channel 10; there may be an off-by-one error in midiutil
@@ -96,12 +102,6 @@ class Tab(object):
         """
         A generator that yields each note in order.
         """
-        # Throw an exception if there are note names for which we can't
-        # determine the proper note numbers.
-        unmappalbeNoteNames = self._noteTypes.difference(self._noteNameToNoteNumberMap.keys())
-        if unmappalbeNoteNames:
-            raise UnmappableNoteNamesException(unmappalbeNoteNames)
-
         tab = self._tab
         time = 0
         duration = 4.0 / self.divisionsInBar # 4.0 is because midiutil's unit of time is the quarter note.

@@ -1,7 +1,8 @@
 import difflib
+import os
 import py.test
 from filecmp import cmp
-from drumtabs import Tab, TabParsingException
+from drumtabs import Tab, TabParsingException, UnmappableNoteNamesException
 
 output_verification_tests = [
     ('simple_4_4_beat',     {'tab' : 'testdata/simple_4_4_beat.txt',
@@ -31,6 +32,14 @@ def test_string_without_tab():
 def test_unknown_strike_types_are_identified():
     t = Tab(file('testdata/unknown_strike_types.txt').read())
     assert t._unknownStrikeTypes == set(['Q', 'S', 'X', 'Z', 'z'])
+
+
+def test_walkNotes_works_with_unknown_note_types():
+    # This should not throw an exception.
+    t = Tab(file('testdata/simple_4_4_beat.txt').read(),
+            noteNameToNoteNumberMap = {})
+    with py.test.raises(UnmappableNoteNamesException):
+        t.writeMIDIFile(open(os.devnull, 'w'))
 
 
 def pytest_generate_tests(metafunc):
