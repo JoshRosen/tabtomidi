@@ -40,8 +40,10 @@ class Tab(object):
         self._BPM = bpm
         self._strikeVolume = strikeVolume
         self._accentVolume = accentVolume
-        self._ghostNoteVolume= ghostNoteVolume
+        self._ghostNoteVolume = ghostNoteVolume
         self._barRows = self._calculateBarRows()
+        if not self._barRows:
+            raise TabParsingException("Could not find any bars in input text.")
         self._noteTypes = self._findAllNoteTypes()
         # Filter out notes from noteNameToNoteNumberMap that do not appear in this tab
         self._noteNameToNoteNumberMap = \
