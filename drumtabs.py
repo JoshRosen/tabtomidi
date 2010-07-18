@@ -117,24 +117,32 @@ class Tab(object):
             # as there are vertical lines in the bar.
             c = self._findVerticalLine(startRow=r+repSkip)
             while c < len(tab[r+repSkip]):
-                # Determine how many times this bar is repeated
                 if repSkip and not ignore_repetition:
-                    repetitions = self._calculateBarRepetitions(r, c)
+                    # Determine how many bars are being repeated, if any.
+                    charsBetweenPipes = len(tab[r][c+1:].split('|', 1)[0])
+                    repeatedBars = 1
+                    while charsBetweenPipes > 32:
+                        charsBetweenPipes -= 33
+                        repeatedBars += 1
+                    # Determine how many times this bar is repeated
+                    repetitions = self._calculateRepetitions(r, c)
                 else:
                     repetitions = 1
+                    repeatedBars = 1
                 for _ in xrange(repetitions):
-                    for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
-                        for d in xrange(0, len(noteTypes)): # For every drum in this bar
-                            strike_type = tab[r + d + repSkip][c + t]
-                            if strike_type == '-':
-                                continue
-                            else:
-                                yield { 'strike_type' : strike_type,
-                                        'note_type' : noteTypes[d],
-                                        'time' : time, }
-                        time += duration
+                    for barSkip in xrange(0, ((repeatedBars - 1) * self.divisionsInBar + 1) + 1, self.divisionsInBar + 1):
+                        for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
+                            for d in xrange(0, len(noteTypes)): # For every drum in this bar
+                                strike_type = tab[r + d + repSkip][c + t + barSkip]
+                                if strike_type == '-':
+                                    continue
+                                else:
+                                    yield { 'strike_type' : strike_type,
+                                            'note_type' : noteTypes[d],
+                                            'time' : time, }
+                            time += duration
                 # Check if there are more bars
-                nextLineColumn = c + self.divisionsInBar + 1
+                nextLineColumn = c + ((self.divisionsInBar + 1) * repeatedBars)
                 if self._isVerticalLine(nextLineColumn, r+repSkip) and nextLineColumn < len(tab[r+repSkip]) - 1:
                     c = nextLineColumn
                 else:
@@ -238,6 +246,11 @@ class Tab(object):
         """
         Returns the number of divisions in the bar whose top row is the given row.
         """
+        # If this row contains repetition information, find the first row that
+        # doesn't.
+        while not self._findNoteType(row):
+            row += 1
+        # Count the number of characters between the vertical bars.
         start = self._findVerticalLine(0, row)
         if not start:
             raise TabParsingException("Could not find starting vertical bar.", 0, row)
@@ -247,16 +260,18 @@ class Tab(object):
         return end - start - 1
 
 
-    def _calculateBarRepetitions(self, row, column):
+    def _calculateRepetitions(self, row, column):
         """
-        Determines how many times the current bar is played.
+        Determines how many times the region whose start is at the given row
+        and column is repeatd.  Assumes that the row contains repetition
+        information (the row should not be the top row of notes).
         """
         tab = self._tab
         # TODO: handle the case where this row at this column is padded out
         # with whitespace or is shorter than the rows below it.
-        thisBar = tab[row][column+1:column+self.divisionsInBar+1].strip('- ' + string.ascii_letters)
-        if thisBar:
-            return int(thisBar)
+        repetitionCount = tab[row][column+1:].split('|', 1)[0].strip('- ' + string.ascii_letters)
+        if repetitionCount:
+            return int(repetitionCount)
         else:
             return 1
 

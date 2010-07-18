@@ -15,6 +15,8 @@ output_verification_tests = [
                              'expected_midi' : 'testdata/repetition_4x.mid'}),
     ('unknown_strike_types',{'tab' : 'testdata/unknown_strike_types.txt',
                              'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
+    ('two_bar_repetition',  {'tab' : 'testdata/two_bar_repetition.txt',
+                             'expected_midi' : 'testdata/two_bar_repetition.mid'}),
 ]
 
 
