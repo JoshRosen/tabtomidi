@@ -1,12 +1,11 @@
 import string
 from midiutil.MidiFile import MIDIFile
-from notenames import defaultNoteNameToNoteNumberMap, GMSpecDrumNameToMidiNote
+from notenames import DEFAULT_NOTE_NAME_TO_NUMBER_MAP
+from notenames import GM_SPEC_NOTE_NAME_TO_NUMBER_MAP
 
 
 class TabParsingException(Exception):
-    """
-    Base class for all exceptions due to unparsable tabs.
-    """
+    """Base class for all exceptions due to unparsable tabs."""
 
     def __init__(self, message, row=None, column=None):
         Exception.__init__(self, message)
@@ -17,13 +16,13 @@ class TabParsingException(Exception):
 class UnmappableNoteNamesException(TabParsingException):
     """
     Raised when the parser cannot map one or more note names to midi notes.
-    The noteNames attribute provides the set of unmappable note names.
+    The note_names attribute provides the set of unmappable note names.
     """
 
-    def __init__(self, noteNames):
-        Exception.__init__(self,
+    def __init__(self, note_names):
+        TabParsingException.__init__(self,
             "Some note names could not be mapped to midi notes")
-        self.noteNames = noteNames
+        self.note_names = note_names
 
 
 class Tab(object):
@@ -31,154 +30,157 @@ class Tab(object):
     Provides information about drum tabs and generates midi files from them.
     """
 
-    def __init__(self, tabtext, noteNameToNoteNumberMap=defaultNoteNameToNoteNumberMap, bpm=100,
-                 strikeVolume=70, accentVolume=110, ghostNoteVolume=50):
-        """
-        Constructs a Tab object from a string representing a tab.
-        """
+    def __init__(self, tabtext,
+                 note_name_to_number_map=None,
+                 bpm=100, strike_volume=70, accent_volume=110,
+                 ghost_note_volume=50):
+        """Constructs a Tab object from a string representing a tab."""
         self._tab = tabtext.splitlines()
-        self._BPM = bpm
-        self._strikeVolume = strikeVolume
-        self._accentVolume = accentVolume
-        self._ghostNoteVolume = ghostNoteVolume
-        self._barRows = self._calculateBarRows()
-        if not self._barRows:
+        self._bpm = bpm
+        self._strike_volume = strike_volume
+        self._accent_volume = accent_volume
+        self._ghost_note_volume = ghost_note_volume
+        self._bar_rows = self._calculate_bar_rows()
+        if not self._bar_rows:
             raise TabParsingException("Could not find any bars in input text.")
-        self._noteTypes = self._findAllNoteTypes()
-        # Filter out notes from noteNameToNoteNumberMap that do not appear in this tab
-        self._noteNameToNoteNumberMap = \
-            dict((note, noteNameToNoteNumberMap[note]) for note in
-            noteNameToNoteNumberMap.keys() if note in self._noteTypes)
-        self.divisionsInBar = self._calculateDivisionsInBar(self._barRows[0])
+        self._note_types = self._find_all_note_types()
+        if note_name_to_number_map == None:
+            note_name_to_number_map = DEFAULT_NOTE_NAME_TO_NUMBER_MAP
+        # Filter out notes from note_name_to_number_map that do not appear in
+        # this tab
+        self._note_name_to_number_map = \
+            dict((note, note_name_to_number_map[note]) for note in
+            note_name_to_number_map.keys() if note in self._note_types)
+        self.divisions_in_bar = self._calculate_divisions_in_bar(
+            self._bar_rows[0])
         # Assuming that all bar have same number of divisions.
         # Some tabs have extra characters between the bars, i.e. 33 instead of
-        # 32, so simply counting the number of characters between the bars will not
-        # always work.
+        # 32, so simply counting the number of characters between the bars will
+        # not always work.
         # Also, some songs have half a bar of extra notes at the beginning.
-        self._strikeTypes = self._findAllStrikeTypes()
-        self._unknownStrikeTypes = self._strikeTypes.difference(set('-Ogro'))
+        self._strike_types = self._find_all_strike_types()
+        self._unknown_strike_types = self._strike_types.difference(
+            set('-Ogro'))
 
-
-    def writeMIDIFile(self, file):
-        """
-        Writes midi generated from this tab to the given file object.
-        """
+    def write_midi_file(self, file_object):
+        """Writes midi generated from this tab to the given file object."""
         # Throw an exception if there are note names for which we can't
         # determine the proper note numbers.
-        unmappalbeNoteNames = self._noteTypes.difference(self._noteNameToNoteNumberMap.keys())
-        if unmappalbeNoteNames:
-            raise UnmappableNoteNamesException(unmappalbeNoteNames)
+        unmappable_note_names = self._note_types.difference(
+            self._note_name_to_number_map.keys())
+        if unmappable_note_names:
+            raise UnmappableNoteNamesException(unmappable_note_names)
 
-        m = MIDIFile(1)
+        midifile = MIDIFile(1)
         track = 0
-        channel = 9 # Should be channel 10; there may be an off-by-one error in midiutil
-        duration = 4.0 / self.divisionsInBar # 4.0 is because midiutil's unit of time is the quarter note.
+        channel = 9
+        duration = 4.0 / self.divisions_in_bar  # 4.0 is because midiutil's
+                                                # unit of time is the quarter
+                                                # note.
         pitch = 0
         volume = 0
-        m.addTrackName(track, 0, "")
-        m.addTempo(track, 0, self._BPM)
-        for note in self.walkNotes():
+        midifile.addTrackName(track, 0, "")
+        midifile.addTempo(track, 0, self._bpm)
+        for note in self.walk_notes():
             strike_type = note['strike_type']
             if strike_type == 'O':
-                pitch = self._noteNameToNoteNumberMap[note['note_type']]
-                volume = self._accentVolume
+                pitch = self._note_name_to_number_map[note['note_type']]
+                volume = self._accent_volume
             elif strike_type == 'g':
-                pitch = self._noteNameToNoteNumberMap[note['note_type']]
-                volume = self._ghostNoteVolume
+                pitch = self._note_name_to_number_map[note['note_type']]
+                volume = self._ghost_note_volume
             elif strike_type == 'r':
-                pitch = GMSpecDrumNameToMidiNote['Sticks']
-                volume = self._strikeVolume
+                pitch = GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Sticks']
+                volume = self._strike_volume
             elif strike_type == 'o':
-                pitch = self._noteNameToNoteNumberMap[note['note_type']]
-                volume = self._strikeVolume
+                pitch = self._note_name_to_number_map[note['note_type']]
+                volume = self._strike_volume
             else:
-                pitch = self._noteNameToNoteNumberMap[note['note_type']]
-                volume = self._strikeVolume
-            m.addNote(track, channel, pitch, note['time'], duration, volume)
-        m.writeFile(file)
+                pitch = self._note_name_to_number_map[note['note_type']]
+                volume = self._strike_volume
+            midifile.addNote(track, channel, pitch, note['time'], duration,
+                             volume)
+        midifile.writeFile(file_object)
 
-
-    def walkNotes(self, ignore_repetition=False):
-        """
-        A generator that yields each note in order.
-        """
+    def walk_notes(self, ignore_repetition=False):
+        """A generator that yields each note in order."""
         tab = self._tab
-        time = 0
-        duration = 4.0 / self.divisionsInBar # 4.0 is because midiutil's unit of time is the quarter note.
-        for r in self._barRows:
-            # Determine whether the first row contains notes or repetition information.
-            if not self._findNoteType(r):
+        time = 0.0
+        duration = 4.0 / self.divisions_in_bar  # 4.0 is because midiutil's
+                                                # unit of time is the quarter
+                                                # note.
+        for r in self._bar_rows:
+            # Determine whether the first row contains notes or repetition
+            # information.
+            if not self._find_note_type(r):
                 repSkip = 1
             else:
                 repSkip = 0
             # Determine which drums are present in this group of bars.
-            noteTypes = self._findNoteTypesForRow(r+repSkip)
-            # The following assumes that there are as many entries in noteTypes
-            # as there are vertical lines in the bar.
-            c = self._findVerticalLine(startRow=r+repSkip)
+            note_types = self._find_note_types_for_row(r+repSkip)
+            # The following assumes that there are as many entries in
+            # note_types as there are vertical lines in the bar.
+            c = self._find_vertical_line(start_row=r+repSkip)
             while c < len(tab[r+repSkip]):
                 if repSkip and not ignore_repetition:
                     # Determine how many bars are being repeated, if any.
-                    charsBetweenPipes = len(tab[r][c+1:].split('|', 1)[0])
-                    repeatedBars = 1
-                    while charsBetweenPipes > 32:
-                        charsBetweenPipes -= 33
-                        repeatedBars += 1
+                    chars_between_pipes = len(tab[r][c+1:].split('|', 1)[0])
+                    repeated_bars = 1
+                    while chars_between_pipes > 32:
+                        chars_between_pipes -= 33
+                        repeated_bars += 1
                     # Determine how many times this bar is repeated
-                    repetitions = self._calculateRepetitions(r, c)
+                    repetitions = self._calculate_repetitions(r, c)
                 else:
                     repetitions = 1
-                    repeatedBars = 1
+                    repeated_bars = 1
                 for _ in xrange(repetitions):
-                    for barSkip in xrange(0, ((repeatedBars - 1) * self.divisionsInBar + 1) + 1, self.divisionsInBar + 1):
-                        for t in xrange(1, self.divisionsInBar + 1): # For every time in this bar
-                            for d in xrange(0, len(noteTypes)): # For every drum in this bar
+                    for barSkip in xrange(0, ((repeated_bars - 1) * self.divisions_in_bar + 1) + 1, self.divisions_in_bar + 1):
+                        for t in xrange(1, self.divisions_in_bar + 1):
+                            # For every time in this bar:
+                            for d in xrange(0, len(note_types)):
+                                # For every drum in this bar:
                                 strike_type = tab[r + d + repSkip][c + t + barSkip]
                                 if strike_type == '-':
                                     continue
                                 else:
                                     yield { 'strike_type' : strike_type,
-                                            'note_type' : noteTypes[d],
+                                            'note_type' : note_types[d],
                                             'time' : time, }
                             time += duration
                 # Check if there are more bars
-                nextLineColumn = c + ((self.divisionsInBar + 1) * repeatedBars)
-                if self._isVerticalLine(nextLineColumn, r+repSkip) and nextLineColumn < len(tab[r+repSkip]) - 1:
-                    c = nextLineColumn
+                next_line_column = c + ((self.divisions_in_bar + 1)
+                                        * repeated_bars)
+                if self._is_vertical_line(next_line_column, r+repSkip) \
+                   and next_line_column < len(tab[r+repSkip]) - 1:
+                    c = next_line_column
                 else:
                     break
 
-
-    def _calculateBarRows(self):
-        """
-        Calculates which rows of the tab text are the top rows of bars.
-        """
+    def _calculate_bar_rows(self):
+        """Calculates which rows of the tab text are the top rows of bars."""
         # For now, simply check whether the row contains a vertical line
         # character and is preceeded by a row that doesn't.
         tab = self._tab
-        barRows = []
-        r = 0
-        while r < len(tab):
-            if '|' in tab[r]:
-                barRows.append(r)
-                while r < len(tab) and '|' in tab[r]:
-                    r += 1
+        bar_rows = []
+        row = 0
+        while row < len(tab):
+            if '|' in tab[row]:
+                bar_rows.append(row)
+                while row < len(tab) and '|' in tab[row]:
+                    row += 1
             else:
-                r += 1
-        return barRows
+                row += 1
+        return bar_rows
 
-
-    def _findAllNoteTypes(self):
-        """
-        Returns the set of note types.
-        """
+    def _find_all_note_types(self):
+        """Returns the set of note types."""
         types = set()
-        for r in self._barRows:
-            types.update(self._findNoteTypesForRow(r))
+        for row in self._bar_rows:
+            types.update(self._find_note_types_for_row(row))
         return types
 
-
-    def _findNoteTypesForRow(self, row):
+    def _find_note_types_for_row(self, row):
         """
         Returns an ordered list of the note types corresponding to the bar
         whose top row is the given row.
@@ -186,81 +188,74 @@ class Tab(object):
         tab = self._tab
         types = []
         while row < len(tab) and '|' in tab[row]:
-            noteType = self._findNoteType(row)
-            if noteType:
-                types.append(noteType)
+            note_type = self._find_note_type(row)
+            if note_type:
+                types.append(note_type)
             row += 1
         return types
 
-
-    def _findNoteType(self, row):
-        """
-        Finds the note type for a given row.
-        """
+    def _find_note_type(self, row):
+        """Finds the note type for a given row."""
         tab = self._tab
-        noteType, sep, notes = tab[row].partition('|')
-        return noteType.strip().rstrip(':-')
+        note_type = tab[row].partition('|')[0]
+        return note_type.strip().rstrip(':-')
 
-
-    def _findAllStrikeTypes(self):
-        """
-        Returns the set of strike types.
-        """
-        tab = self._tab
+    def _find_all_strike_types(self):
+        """Returns the set of strike types."""
         types = set()
-        for note in self.walkNotes(ignore_repetition=True):
+        for note in self.walk_notes(ignore_repetition=True):
             types.update(note['strike_type'])
         return types
 
-
-    def _findVerticalLine(self, startColumn=0, startRow=0):
+    def _find_vertical_line(self, start_column=0, start_row=0):
         """
-        Returns the first column on or after startColumn that is a vertical line /
-        bar division.  If no column is found, returns None.
+        Returns the first column on or after start_column that is a vertical
+        line / bar division.  If no column is found, returns None.
         """
         tab = self._tab
-        for c in xrange(startColumn, len(tab[startRow])):
-            if self._isVerticalLine(c, startRow):
-                return c
+        for column in xrange(start_column, len(tab[start_row])):
+            if self._is_vertical_line(column, start_row):
+                return column
         return None
 
-
-    def _isVerticalLine(self, column, startRow):
+    def _is_vertical_line(self, column, start_row):
         """
-        Returns True if the column contains an unbroken vertical line starting
-        from the startRow.
-        """
+        Returns True if the column contains an unbroken vertical line
+        starting from the start_row."""
         tab = self._tab
-        if tab[startRow][column] == '|':
-            for r in xrange(startRow, len(tab)):
-                if column >= len(tab[r]) or tab[r].strip() == "" or tab[r][column] == " ":
+        if tab[start_row][column] == '|':
+            for row in xrange(start_row, len(tab)):
+                if column >= len(tab[row]) \
+                   or tab[row].strip() == "" \
+                   or tab[row][column] == " ":
                     break
-                if tab[r][column] != '|':
+                if tab[row][column] != '|':
                     return False
             return True
         else:
             return False
 
-
-    def _calculateDivisionsInBar(self, row):
+    def _calculate_divisions_in_bar(self, row):
         """
-        Returns the number of divisions in the bar whose top row is the given row.
+        Returns the number of divisions in the bar whose top row is the
+        given row.
         """
         # If this row contains repetition information, find the first row that
         # doesn't.
-        while not self._findNoteType(row):
+        while not self._find_note_type(row):
             row += 1
         # Count the number of characters between the vertical bars.
-        start = self._findVerticalLine(0, row)
+        start = self._find_vertical_line(0, row)
         if not start:
-            raise TabParsingException("Could not find starting vertical bar.", 0, row)
-        end = self._findVerticalLine(start + 1, row)
+            raise TabParsingException("Could not find starting vertical bar.",
+                                      0, row)
+        end = self._find_vertical_line(start + 1, row)
         if not end:
-            raise TabParsingException("Could not find end vertical bar.", start + 1, row)
+            raise TabParsingException("Could not find end vertical bar.",
+                                      start + 1, row)
         return end - start - 1
 
-
-    def _calculateRepetitions(self, row, column):
+    def _calculate_repetitions(self, row, column):
         """
         Determines how many times the region whose start is at the given row
         and column is repeatd.  Assumes that the row contains repetition
@@ -269,21 +264,18 @@ class Tab(object):
         tab = self._tab
         # TODO: handle the case where this row at this column is padded out
         # with whitespace or is shorter than the rows below it.
-        repetitionCount = tab[row][column+1:].split('|', 1)[0].strip('- ' + string.ascii_letters)
-        if repetitionCount:
-            return int(repetitionCount)
+        repetition_count = tab[row][column+1:].split('|', 1)[0]
+        repetition_count = repetition_count.strip('- ' + string.ascii_letters)
+        if repetition_count:
+            return int(repetition_count)
         else:
             return 1
 
-
-# todo: automatic time signature determination
 
 def _test():
     import doctest
     doctest.testmod()
 
+
 if __name__ == "__main__":
     _test()
-    s = open("test.txt").read()
-    t = Tab(s)
-    t.writeMIDIFile(open("output.mid", "wb"))

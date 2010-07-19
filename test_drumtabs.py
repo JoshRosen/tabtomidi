@@ -1,7 +1,6 @@
-import difflib
 import os
 import py.test
-from filecmp import cmp
+import filecmp
 from drumtabs import Tab, TabParsingException, UnmappableNoteNamesException
 
 output_verification_tests = [
@@ -22,9 +21,9 @@ output_verification_tests = [
 
 def test_string_without_tab():
     with py.test.raises(TabParsingException):
-        t = Tab("")
+        Tab("")
     with py.test.raises(TabParsingException):
-        t = Tab("""
+        Tab("""
         This text contains no bar rows.
         An custom exception should be thrown
         if we try to generate a tab from this.
@@ -32,16 +31,16 @@ def test_string_without_tab():
 
 
 def test_unknown_strike_types_are_identified():
-    t = Tab(file('testdata/unknown_strike_types.txt').read())
-    assert t._unknownStrikeTypes == set(['Q', 'S', 'X', 'Z', 'z'])
+    tab = Tab(file('testdata/unknown_strike_types.txt').read())
+    assert tab._unknown_strike_types == set(['Q', 'S', 'X', 'Z', 'z'])
 
 
-def test_walkNotes_works_with_unknown_note_types():
+def test_walk_notes_works_with_unknown_note_types():
     # This should not throw an exception.
-    t = Tab(file('testdata/simple_4_4_beat.txt').read(),
-            noteNameToNoteNumberMap = {})
+    tab = Tab(file('testdata/simple_4_4_beat.txt').read(),
+              note_name_to_number_map = {})
     with py.test.raises(UnmappableNoteNamesException):
-        t.writeMIDIFile(open(os.devnull, 'w'))
+        tab.write_midi_file(open(os.devnull, 'w'))
 
 
 def pytest_generate_tests(metafunc):
@@ -53,6 +52,6 @@ def pytest_generate_tests(metafunc):
 def test_generated_midi_matches_expected_midi(tmpdir, tab, expected_midi):
     actual_midi = tmpdir.join("actual.mid").strpath
 
-    t = Tab(file(tab).read())
-    t.writeMIDIFile(open(actual_midi, "wb"))
-    assert cmp(actual_midi, expected_midi)
+    tab = Tab(file(tab).read())
+    tab.write_midi_file(open(actual_midi, "wb"))
+    assert filecmp.cmp(actual_midi, expected_midi)

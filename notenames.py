@@ -7,7 +7,7 @@ mappings.
 # http://www.midi.org/techspecs/gm1sound.php
 # and the GM2 Sound Set
 # http://en.wikipedia.org/wiki/General_MIDI_Level_2#Drum_sounds
-GMSpecDrumNameToMidiNote = {
+GM_SPEC_NOTE_NAME_TO_NUMBER_MAP = {
     # Cymbals
     'Crash Cymbal 1'     : 49,
     'Crash Cymbal 2'     : 57,
@@ -79,24 +79,24 @@ GMSpecDrumNameToMidiNote = {
 }
 
 
-defaultNoteNameToNoteNumberMap = {
-    'B'  : GMSpecDrumNameToMidiNote['Acoustic Bass Drum'],
-    'C'  : GMSpecDrumNameToMidiNote['Crash Cymbal 1'],
-    'C1' : GMSpecDrumNameToMidiNote['Crash Cymbal 1'],
-    'CC' : GMSpecDrumNameToMidiNote['Crash Cymbal 1'],
-    'f'  : GMSpecDrumNameToMidiNote['High Floor Tom'],
-    'F'  : GMSpecDrumNameToMidiNote['Low Floor Tom'],
-    'F1' : GMSpecDrumNameToMidiNote['High Floor Tom'],
-    'F2' : GMSpecDrumNameToMidiNote['Low Floor Tom'],
-    'H'  : GMSpecDrumNameToMidiNote['Closed Hi-Hat'],
-    'Hf' : GMSpecDrumNameToMidiNote['Pedal Hi-Hat'],
-    'HH' : GMSpecDrumNameToMidiNote['Closed Hi-Hat'],
-    'R'  : GMSpecDrumNameToMidiNote['Ride Cymbal 1'],
-    'Rd' : GMSpecDrumNameToMidiNote['Ride Cymbal 1'],
-    'S'  : GMSpecDrumNameToMidiNote['Acoustic Snare'],
+DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
+    'B'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
+    'C'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'C1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'CC' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'f'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Floor Tom'],
+    'F'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Floor Tom'],
+    'F1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Floor Tom'],
+    'F2' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Floor Tom'],
+    'H'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
+    'Hf' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Pedal Hi-Hat'],
+    'HH' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
+    'R'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
+    'Rd' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
+    'S'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
     # Not sure about this
-    't'  : GMSpecDrumNameToMidiNote['High Tom'],
-    'T'  : GMSpecDrumNameToMidiNote['Low Tom'],
-    'T1' : GMSpecDrumNameToMidiNote['High Tom'],
-    'T2' : GMSpecDrumNameToMidiNote['Low Tom'],
+    't'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Tom'],
+    'T'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Tom'],
+    'T1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Tom'],
+    'T2' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Tom'],
 }
