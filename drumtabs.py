@@ -43,31 +43,61 @@ class Tab(object):
         self._bar_rows = self._calculate_bar_rows()
         if not self._bar_rows:
             raise TabParsingException("Could not find any bars in input text.")
-        self._note_types = self._find_all_note_types()
+        self._note_types = None
+        self._strike_types = None
         if note_name_to_number_map == None:
-            note_name_to_number_map = DEFAULT_NOTE_NAME_TO_NUMBER_MAP
-        # Filter out notes from note_name_to_number_map that do not appear in
-        # this tab
-        self._note_name_to_number_map = \
-            dict((note, note_name_to_number_map[note]) for note in
-            note_name_to_number_map.keys() if note in self._note_types)
-        self.divisions_in_bar = self._calculate_divisions_in_bar(
-            self._bar_rows[0])
+            self.note_name_to_number_map = DEFAULT_NOTE_NAME_TO_NUMBER_MAP
+        else:
+            self.note_name_to_number_map = note_name_to_number_map
         # Assuming that all bar have same number of divisions.
         # Some tabs have extra characters between the bars, i.e. 33 instead of
         # 32, so simply counting the number of characters between the bars will
         # not always work.
         # Also, some songs have half a bar of extra notes at the beginning.
-        self._strike_types = self._find_all_strike_types()
-        self._unknown_strike_types = self._strike_types.difference(
-            set('-Ogro'))
+        self.divisions_in_bar = self._calculate_divisions_in_bar(
+            self._bar_rows[0])
+
+    # TODO: add indirect accessors and setters before allowing this class to be
+    # subclassed.
+    def __set_note_name_to_number_map(self, note_name_to_number_map):
+        """Setter for note_name_to_number_map property."""
+        self.__note_name_to_number_map = \
+            dict((note, note_name_to_number_map[note]) for note in
+            note_name_to_number_map.keys() if note in self.note_types)
+
+    def __get_note_name_to_number_map(self):
+        """Accessor for note_name_to_number_map property."""
+        return self.__note_name_to_number_map
+
+    note_name_to_number_map = property(
+        __get_note_name_to_number_map, __set_note_name_to_number_map,
+        doc="""Get or set the note name to note number map.""")
+
+    @property
+    def note_types(self):
+        """The set of all note types."""
+        if self._note_types == None:
+            self._note_types = self._find_all_note_types()
+        return self._note_types
+
+    @property
+    def strike_types(self):
+        """The set of all strike types."""
+        if self._strike_types == None:
+            self._strike_types = self._find_all_strike_types()
+        return self._strike_types
+
+    @property
+    def unknown_strike_types(self):
+        """The set of strike types without defined handling behavior."""
+        return self.strike_types.difference(set('-Ogro'))
 
     def write_midi_file(self, file_object):
         """Writes midi generated from this tab to the given file object."""
         # Throw an exception if there are note names for which we can't
         # determine the proper note numbers.
-        unmappable_note_names = self._note_types.difference(
-            self._note_name_to_number_map.keys())
+        unmappable_note_names = self.note_types.difference(
+            self.note_name_to_number_map.keys())
         if unmappable_note_names:
             raise UnmappableNoteNamesException(unmappable_note_names)
 
@@ -84,19 +114,19 @@ class Tab(object):
         for note in self.walk_notes():
             strike_type = note['strike_type']
             if strike_type == 'O':
-                pitch = self._note_name_to_number_map[note['note_type']]
+                pitch = self.note_name_to_number_map[note['note_type']]
                 volume = self._accent_volume
             elif strike_type == 'g':
-                pitch = self._note_name_to_number_map[note['note_type']]
+                pitch = self.note_name_to_number_map[note['note_type']]
                 volume = self._ghost_note_volume
             elif strike_type == 'r':
                 pitch = GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Sticks']
                 volume = self._strike_volume
             elif strike_type == 'o':
-                pitch = self._note_name_to_number_map[note['note_type']]
+                pitch = self.note_name_to_number_map[note['note_type']]
                 volume = self._strike_volume
             else:
-                pitch = self._note_name_to_number_map[note['note_type']]
+                pitch = self.note_name_to_number_map[note['note_type']]
                 volume = self._strike_volume
             midifile.addNote(track, channel, pitch, note['time'], duration,
                              volume)

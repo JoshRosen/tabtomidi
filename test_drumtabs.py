@@ -32,7 +32,7 @@ def test_string_without_tab():
 
 def test_unknown_strike_types_are_identified():
     tab = Tab(file('testdata/unknown_strike_types.txt').read())
-    assert tab._unknown_strike_types == set(['Q', 'S', 'X', 'Z', 'z'])
+    assert tab.unknown_strike_types == set(['Q', 'S', 'X', 'Z', 'z'])
 
 
 def test_walk_notes_works_with_unknown_note_types():
