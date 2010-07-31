@@ -295,7 +295,7 @@ class Tab(object):
         # TODO: handle the case where this row at this column is padded out
         # with whitespace or is shorter than the rows below it.
         repetition_count = tab[row][column+1:].split('|', 1)[0]
-        repetition_count = repetition_count.strip('- ' + string.ascii_letters)
+        repetition_count = repetition_count.strip('-_ ' + string.ascii_letters)
         if repetition_count:
             return int(repetition_count)
         else:
