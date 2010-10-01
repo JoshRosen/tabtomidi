@@ -10,6 +10,8 @@ output_verification_tests = [
                              'expected_midi' : 'testdata/repetition_4x.mid'}),
     ('repetition_4x_unders',{'tab' : 'testdata/repetition_4x_underscore.txt',
                              'expected_midi' : 'testdata/repetition_4x.mid'}),
+    ('repetition_4x_equals',{'tab' : 'testdata/repetition_4x_equals.txt',
+                             'expected_midi' : 'testdata/repetition_4x.mid'}),
     ('repetition_2x_2x',    {'tab' : 'testdata/repetition_2x_2x.txt',
                              'expected_midi' : 'testdata/repetition_4x.mid'}),
     ('repetition_1x_2x_1x', {'tab' : 'testdata/repetition_1x_2x_1x.txt',
