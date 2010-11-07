@@ -49,11 +49,14 @@ class Tab(object):
             self.note_name_to_number_map = DEFAULT_NOTE_NAME_TO_NUMBER_MAP
         else:
             self.note_name_to_number_map = note_name_to_number_map
-        # Assuming that all bar have same number of divisions.
+        # Assuming that all columns notes have the same duration, i.e. each
+        # column represents a 16th note.
         # Some tabs have extra characters between the bars, i.e. 33 instead of
         # 32, so simply counting the number of characters between the bars will
         # not always work.
-        # Also, some songs have half a bar of extra notes at the beginning.
+        # For now, use the number of divisions in the first bar to calculate
+        # the note duration.  This should probably be changed to find the mode
+        # of the set of divisions in each bar.
         self.divisions_in_bar = self._calculate_divisions_in_bar(
             self._bar_rows[0])
 
@@ -151,49 +154,44 @@ class Tab(object):
             # Determine whether the first row contains notes or repetition
             # information.
             if not self._find_note_type(r):
-                repSkip = 1
+                has_repetitions = True
+                repetition_info = r
+                r += 1
             else:
-                repSkip = 0
+                has_repetitions = False
             # Determine which drums are present in this group of bars.
-            note_types = self._find_note_types_for_row(r+repSkip)
+            note_types = self._find_note_types_for_row(r)
             # The following assumes that there are as many entries in
             # note_types as there are vertical lines in the bar.
-            c = self._find_vertical_line(start_row=r+repSkip)
-            while c < len(tab[r+repSkip]):
-                if repSkip and not ignore_repetition:
-                    # Determine how many bars are being repeated, if any.
-                    chars_between_pipes = len(tab[r][c+1:].split('|', 1)[0])
-                    repeated_bars = 1
-                    while chars_between_pipes > 32:
-                        chars_between_pipes -= 33
-                        repeated_bars += 1
-                    # Determine how many times this bar is repeated
-                    repetitions = self._calculate_repetitions(r, c)
+            c = self._find_vertical_line(start_row=r)
+            while c < len(tab[r]) - 1:
+                if not self._is_vertical_line(c, r):
+                    break
+                if has_repetitions and not ignore_repetition:
+                    # Determine the length of the repeated section.
+                    num_cols_to_parse = len(tab[repetition_info][c+1:].split('|', 1)[0])
+                    if num_cols_to_parse == 0:
+                        num_cols_to_parse = self._find_vertical_line(c+1, r) - c - 1
+                    # Determine how many times the section is repeated.
+                    repetitions = self._calculate_repetitions(repetition_info, c)
                 else:
+                    num_cols_to_parse = self._find_vertical_line(c+1, r) - c - 1
                     repetitions = 1
-                    repeated_bars = 1
                 for _ in xrange(repetitions):
-                    for barSkip in xrange(0, ((repeated_bars - 1) * self.divisions_in_bar + 1) + 1, self.divisions_in_bar + 1):
-                        for t in xrange(1, self.divisions_in_bar + 1):
-                            # For every time in this bar:
+                    for t in xrange(1, num_cols_to_parse+1):
+                        # For every time in this bar or repeated section:
+                        if not self._is_vertical_line(c+t, r):
                             for d in xrange(0, len(note_types)):
                                 # For every drum in this bar:
-                                strike_type = tab[r + d + repSkip][c + t + barSkip]
-                                if strike_type == '-':
+                                strike_type = tab[r + d][c + t]
+                                if strike_type in '-|':
                                     continue
                                 else:
                                     yield { 'strike_type' : strike_type,
                                             'note_type' : note_types[d],
                                             'time' : time, }
                             time += duration
-                # Check if there are more bars
-                next_line_column = c + ((self.divisions_in_bar + 1)
-                                        * repeated_bars)
-                if self._is_vertical_line(next_line_column, r+repSkip) \
-                   and next_line_column < len(tab[r+repSkip]) - 1:
-                    c = next_line_column
-                else:
-                    break
+                c += num_cols_to_parse + 1
 
     def _calculate_bar_rows(self):
         """Calculates which rows of the tab text are the top rows of bars."""
