@@ -88,9 +88,29 @@ class Tab(object):
         return self._strike_types
 
     @property
+    def strike_type_volume_map(self):
+        return {
+            'O' : self._accent_volume,
+            'g' : self._ghost_note_volume,
+            'r' : self._strike_volume,
+            'o' : self._strike_volume,
+        }
+
+    @property
     def unknown_strike_types(self):
         """The set of strike types without defined handling behavior."""
-        return self.strike_types.difference(set('-Ogro'))
+        return self.strike_types.difference(
+            set(self.strike_type_volume_map.keys()))
+
+    def _volume_for_strke_type(self, strike_type):
+        """
+        Given a character representing a type of strike, determine how loud the
+        note should be played.
+        """
+        if strike_type in self.strike_type_volume_map.keys():
+            return self.strike_type_volume_map[strike_type]
+        else:
+            return self._strike_volume
 
     def write_midi_file(self, file_object):
         """Writes midi generated from this tab to the given file object."""
@@ -107,27 +127,15 @@ class Tab(object):
         duration = 4.0 / self.divisions_in_bar  # 4.0 is because midiutil's
                                                 # unit of time is the quarter
                                                 # note.
-        pitch = 0
-        volume = 0
         midifile.addTrackName(track, 0, "")
         midifile.addTempo(track, 0, self._bpm)
         for note in self.walk_notes():
             strike_type = note['strike_type']
-            if strike_type == 'O':
-                pitch = self.note_name_to_number_map[note['note_type']]
-                volume = self._accent_volume
-            elif strike_type == 'g':
-                pitch = self.note_name_to_number_map[note['note_type']]
-                volume = self._ghost_note_volume
-            elif strike_type == 'r':
+            volume = self._volume_for_strke_type(strike_type)
+            if strike_type == 'r':
                 pitch = GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Sticks']
-                volume = self._strike_volume
-            elif strike_type == 'o':
-                pitch = self.note_name_to_number_map[note['note_type']]
-                volume = self._strike_volume
             else:
                 pitch = self.note_name_to_number_map[note['note_type']]
-                volume = self._strike_volume
             midifile.addNote(track, channel, pitch, note['time'], duration,
                              volume)
         midifile.writeFile(file_object)
