@@ -1,4 +1,5 @@
 import string
+import re
 from midiutil.MidiFile import MIDIFile
 from notenames import DEFAULT_NOTE_NAME_TO_NUMBER_MAP
 from notenames import GM_SPEC_NOTE_NAME_TO_NUMBER_MAP
@@ -21,7 +22,7 @@ class UnmappableNoteNamesException(TabParsingException):
 
     def __init__(self, note_names):
         TabParsingException.__init__(self,
-            "Some note names could not be mapped to midi notes")
+            "Some note names could not be mapped to midi notes: " + str(note_names))
         self.note_names = note_names
 
 
@@ -153,7 +154,7 @@ class Tab(object):
         for r in self._bar_rows:
             # Determine whether the first row contains notes or repetition
             # information.
-            if not self._find_note_type(r):
+            if self._contains_repetitions(r):
                 has_repetitions = True
                 repetition_info = r
                 r += 1
@@ -183,6 +184,11 @@ class Tab(object):
                         if not self._is_vertical_line(c+t, r):
                             for d in xrange(0, len(note_types)):
                                 # For every drum in this bar:
+                                if c + t >= len(tab[r + d]) and \
+                                    tab[r + d].strip()[-1] == '|':
+                                    # This is to handle cases where the last
+                                    # row of a group of bars has fewer columns
+                                    continue
                                 strike_type = tab[r + d][c + t]
                                 if strike_type in '-|':
                                     continue
@@ -224,9 +230,10 @@ class Tab(object):
         tab = self._tab
         types = []
         while row < len(tab) and '|' in tab[row]:
-            note_type = self._find_note_type(row)
-            if note_type:
-                types.append(note_type)
+            if not self._contains_repetitions(row):
+                note_type = self._find_note_type(row)
+                if note_type:
+                    types.append(note_type)
             row += 1
         return types
 
@@ -305,9 +312,28 @@ class Tab(object):
         repetition_count = repetition_count.strip(fill_characters +
                                                   string.ascii_letters)
         if repetition_count:
-            return int(repetition_count)
+            try:
+                reps = int(repetition_count)
+                if reps == 1:
+                    # "repeat 1x" probably means "play this section twice"
+                    return 2
+                else:
+                    return reps
+            except ValueError:
+                # TODO: should probably log a warning here.
+                return 1
         else:
             return 1
+
+    def _contains_repetitions(self, row):
+        """
+        Return True if the row contains repetition information, False
+        otherwise.
+        """
+        row_text = self._tab[row]
+        if re.search(r"repeat|\|-*\d+x-*\|", row_text):
+            return True
+        return not self._find_note_type(row)
 
 
 def _test():
