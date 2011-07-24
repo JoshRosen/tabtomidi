@@ -331,7 +331,7 @@ class Tab(object):
         otherwise.
         """
         row_text = self._tab[row]
-        if re.search(r"repeat|\|-*\d+x-*\|", row_text):
+        if re.search(r"repeat|\|[-_=]*(\d+x|x\d+)[-_=]*\|", row_text):
             return True
         return not self._find_note_type(row)
 
