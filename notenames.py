@@ -81,6 +81,8 @@ GM_SPEC_NOTE_NAME_TO_NUMBER_MAP = {
 
 DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
     'B'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
+    'B1'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
+    'B2'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
     'Bd'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
     'C'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
     'C1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],

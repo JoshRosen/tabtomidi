@@ -160,6 +160,7 @@ class Tab(object):
                 r += 1
             else:
                 has_repetitions = False
+            r = self._find_first_note_row_for_bar(r)
             # Determine which drums are present in this group of bars.
             note_types = self._find_note_types_for_row(r)
             # The following assumes that there are as many entries in
@@ -201,31 +202,45 @@ class Tab(object):
 
     def _calculate_bar_rows(self):
         """Calculates which rows of the tab text are the top rows of bars."""
-        # For now, simply check whether the row contains a vertical line
-        # character and is preceeded by a row that doesn't.
         tab = self._tab
         bar_rows = []
         row = 0
         while row < len(tab):
             if '|' in tab[row]:
                 bar_rows.append(row)
-                while row < len(tab) and '|' in tab[row]:
+                while row < len(tab) and ('|' in tab[row] or
+                    self._contains_triplets(row)):
                     row += 1
             else:
                 row += 1
         return bar_rows
 
+    def _find_first_note_row_for_bar(self, row):
+        """
+        Find the first row of the bar starting on or after the given row that
+        contains notes (as opposed to repetition information, comments, or
+        triplet marks.
+        """
+        r = row
+        while r < len(self._tab) and (self._contains_repetitions(r) or \
+            self._contains_triplets(r)):
+            r += 1
+        if r >= len(self._tab) or not self._find_vertical_line(start_row=r):
+            raise TabParsingException("Bar without notes")
+        return r
+
     def _find_all_note_types(self):
         """Returns the set of note types."""
         types = set()
         for row in self._bar_rows:
-            types.update(self._find_note_types_for_row(row))
+            note_row = self._find_first_note_row_for_bar(row)
+            types.update(self._find_note_types_for_row(note_row))
         return types
 
     def _find_note_types_for_row(self, row):
         """
         Returns an ordered list of the note types corresponding to the bar
-        whose top row is the given row.
+        whose top note row is the given row.
         """
         tab = self._tab
         types = []
@@ -283,10 +298,8 @@ class Tab(object):
         Returns the number of divisions in the bar whose top row is the
         given row.
         """
-        # If this row contains repetition information, find the first row that
-        # doesn't.
-        while not self._find_note_type(row):
-            row += 1
+        # Find the first row that contains notes
+        row = self._find_first_note_row_for_bar(row)
         # Count the number of characters between the vertical bars.
         start = self._find_vertical_line(0, row)
         if not start:
@@ -334,6 +347,17 @@ class Tab(object):
         if re.search(r"repeat|\|[-_=]*(\d+x|x\d+)[-_=]*\|", row_text):
             return True
         return not self._find_note_type(row)
+
+    def _contains_triplets(self, row):
+        """
+        Return True if the row contains notation indicating triplets, False
+        otherwise.
+        """
+        row_text = self._tab[row]
+        if re.search(r"\(3\)", row_text):
+            return True
+        else:
+            return False
 
 
 def _test():
