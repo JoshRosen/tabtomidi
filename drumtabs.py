@@ -36,7 +36,7 @@ class Tab(object):
                  bpm=100, strike_volume=70, accent_volume=110,
                  ghost_note_volume=50):
         """Constructs a Tab object from a string representing a tab."""
-        self._tab = tabtext.splitlines()
+        self._tab = [l.rstrip() for l in tabtext.splitlines()]
         self._bpm = bpm
         self._strike_volume = strike_volume
         self._accent_volume = accent_volume
