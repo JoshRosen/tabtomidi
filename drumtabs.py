@@ -41,6 +41,10 @@ class Tab(object):
         self._strike_volume = strike_volume
         self._accent_volume = accent_volume
         self._ghost_note_volume = ghost_note_volume
+        # perform pre-processing to remove count rows:
+        for r in range(len(self._tab)):
+            if self._is_count_row(r):
+                self._tab[r] = ""
         self._bar_rows = self._calculate_bar_rows()
         if not self._bar_rows:
             raise TabParsingException("Could not find any bars in input text.")
@@ -358,6 +362,16 @@ class Tab(object):
             return True
         else:
             return False
+
+    def _is_count_row(self, row):
+        """
+        Return True if the row contains notation indicating a count, False
+        otherwise.  For example: | 1 e & a 2 e & a 3 e & a 4 e & a |
+        """
+        row_text = self._tab[row]
+        if '&' in row_text:
+            return True
+        return False
 
 
 def _test():
