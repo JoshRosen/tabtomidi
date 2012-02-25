@@ -369,7 +369,7 @@ class Tab(object):
         otherwise.  For example: | 1 e & a 2 e & a 3 e & a 4 e & a |
         """
         row_text = self._tab[row]
-        if '&' in row_text:
+        if '&' in row_text or '+' in row_text:
             return True
         return False
 
