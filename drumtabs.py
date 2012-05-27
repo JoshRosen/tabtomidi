@@ -132,9 +132,8 @@ class Tab(object):
         midifile = MIDIFile(1)
         track = 0
         channel = 9
-        duration = 4.0 / self.divisions_in_bar  # 4.0 is because midiutil's
-                                                # unit of time is the quarter
-                                                # note.
+        duration = round(4.0 / self.divisions_in_bar, 10)
+        # 4.0 is because midiutil's  unit of time is the quarter note.
         midifile.addTrackName(track, 0, "")
         midifile.addTempo(track, 0, self._bpm)
         for note in self.walk_notes():
@@ -152,9 +151,9 @@ class Tab(object):
         """A generator that yields each note in order."""
         tab = self._tab
         time = 0.0
-        duration = 4.0 / self.divisions_in_bar  # 4.0 is because midiutil's
-                                                # unit of time is the quarter
-                                                # note.
+        duration = round(4.0 / self.divisions_in_bar, 10)
+        # 4.0 is because midiutil's  unit of time is the quarter note.
+
         for r in self._bar_rows:
             # Determine whether the first row contains notes or repetition
             # information.
@@ -369,7 +368,7 @@ class Tab(object):
         otherwise.  For example: | 1 e & a 2 e & a 3 e & a 4 e & a |
         """
         row_text = self._tab[row]
-        if '&' in row_text or '+' in row_text:
+        if '&' in row_text:
             return True
         return False
 
