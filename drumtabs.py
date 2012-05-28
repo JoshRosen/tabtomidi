@@ -36,6 +36,11 @@ class Tab(object):
                  bpm=100, strike_volume=70, accent_volume=110,
                  ghost_note_volume=50):
         """Constructs a Tab object from a string representing a tab."""
+        # Replace pipe character loookalikes with proper pipe characters
+        # See http://stackoverflow.com/questions/10572627/
+        pipe_lookalikes = u'\u007c\u00a6\u2758\uffc5\uffe4'
+        for lookalike in pipe_lookalikes:
+            tabtext = tabtext.replace(lookalike, '|')
         self._tab = [l.rstrip() for l in tabtext.splitlines()]
         self._bpm = bpm
         self._strike_volume = strike_volume

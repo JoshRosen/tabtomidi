@@ -1,4 +1,5 @@
 import os
+import codecs
 import py.test
 import filecmp
 from drumtabs import Tab, TabParsingException, UnmappableNoteNamesException
@@ -23,6 +24,8 @@ output_verification_tests = [
     ('two_bar_repetition',  {'tab' : 'testdata/two_bar_repetition.txt',
                              'expected_midi' : 'testdata/two_bar_repetition.mid'}),
     ('no_initial_pipe',     {'tab': 'testdata/simple_4_4_beat_no_initial_pipe.txt',
+                             'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
+    ('odd_pipe_chars',      {'tab': 'testdata/simple_4_4_beat_odd_pipe_chars.txt',
                              'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
 ]
 
@@ -60,6 +63,6 @@ def pytest_generate_tests(metafunc):
 def test_generated_midi_matches_expected_midi(tmpdir, tab, expected_midi):
     actual_midi = tmpdir.join("actual.mid").strpath
 
-    tab = Tab(file(tab).read())
+    tab = Tab(codecs.open(tab, "r", "utf-8").read())
     tab.write_midi_file(open(actual_midi, "wb"))
     assert filecmp.cmp(actual_midi, expected_midi)
