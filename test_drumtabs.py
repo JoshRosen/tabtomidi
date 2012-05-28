@@ -22,6 +22,8 @@ output_verification_tests = [
                              'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
     ('two_bar_repetition',  {'tab' : 'testdata/two_bar_repetition.txt',
                              'expected_midi' : 'testdata/two_bar_repetition.mid'}),
+    ('no_initial_pipe',     {'tab': 'testdata/simple_4_4_beat_no_initial_pipe.txt',
+                             'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
 ]
 
 

@@ -169,9 +169,10 @@ class Tab(object):
             # The following assumes that there are as many entries in
             # note_types as there are vertical lines in the bar.
             c = self._find_vertical_line(start_row=r)
+            # Support bars that leave out the leftmost pipe character.
+            if c - (self.divisions_in_bar + 1) > 0:
+                c -= (self.divisions_in_bar + 1)
             while c < len(tab[r]) - 1:
-                if not self._is_vertical_line(c, r):
-                    break
                 if has_repetitions and not ignore_repetition:
                     # Determine the length of the repeated section.
                     num_cols_to_parse = len(tab[repetition_info][c+1:].split('|', 1)[0])
@@ -202,6 +203,8 @@ class Tab(object):
                                             'time' : time, }
                             time += duration
                 c += num_cols_to_parse + 1
+                if not self._is_vertical_line(c, r):
+                    break
 
     def _calculate_bar_rows(self):
         """Calculates which rows of the tab text are the top rows of bars."""
@@ -259,7 +262,8 @@ class Tab(object):
         """Finds the note type for a given row."""
         tab = self._tab
         note_type = tab[row].partition('|')[0]
-        return note_type.strip().rstrip(':-')
+        note_type = note_type.strip().split(' ')[0]
+        return note_type.rstrip(' :-')
 
     def _find_all_strike_types(self):
         """Returns the set of strike types."""
