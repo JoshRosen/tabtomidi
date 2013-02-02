@@ -1,8 +1,11 @@
 import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+os.chdir(os.path.dirname(__file__))
 import codecs
 import py.test
 import filecmp
-from drumtabs import Tab, TabParsingException, UnmappableNoteNamesException
+from tabtomidi import Tab, TabParsingException, UnmappableNoteNamesException
 
 output_verification_tests = [
     ('simple_4_4_beat',     {'tab' : 'testdata/simple_4_4_beat.txt',

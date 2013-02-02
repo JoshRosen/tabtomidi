@@ -4,7 +4,7 @@ A command-line tool for testing the tabtomidi library.
 import argparse
 import codecs
 
-from drumtabs import Tab
+from tabtomidi import Tab
 from collections import defaultdict
 
 def main():

@@ -1,8 +1,8 @@
 import string
 import re
 from midiutil.MidiFile import MIDIFile
-from notenames import DEFAULT_NOTE_NAME_TO_NUMBER_MAP
-from notenames import GM_SPEC_NOTE_NAME_TO_NUMBER_MAP
+from tabtomidi.notenames import DEFAULT_NOTE_NAME_TO_NUMBER_MAP, \
+    GM_SPEC_NOTE_NAME_TO_NUMBER_MAP
 
 
 class TabParsingException(Exception):
