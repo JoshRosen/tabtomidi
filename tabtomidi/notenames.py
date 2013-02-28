@@ -81,13 +81,18 @@ GM_SPEC_NOTE_NAME_TO_NUMBER_MAP = {
 
 DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
     'B'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
+    'b'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
     'B1'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
     'B2'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
     'Bd'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Bass Drum'],
     'C'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'c'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
     'C1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'c1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'C2' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
     'CC' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
     'Cc' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Crash Cymbal 1'],
+    'Ch' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Chinese Cymbal'],
     'f'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Floor Tom'],
     'F'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Floor Tom'],
     'Ft'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Floor Tom'],
@@ -97,9 +102,12 @@ DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
     'Hf' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Pedal Hi-Hat'],
     'HH' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
     'Hh' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
+    'hh' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
+    'h'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
     'R'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
     'Rd' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
     'S'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
+    's'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
     'Sd'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
     # Not sure about this
     't'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Tom'],
@@ -107,4 +115,6 @@ DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
     'T1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Tom'],
     'T2' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Tom'],
     'Tm'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Tambourine'],
+    'sp' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Splash Cymbal'],
+    'Sp' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Splash Cymbal'],
 }
