@@ -30,6 +30,8 @@ output_verification_tests = [
                              'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
     ('odd_pipe_chars',      {'tab': 'testdata/simple_4_4_beat_odd_pipe_chars.txt',
                              'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
+    ('trailing text',       {'tab': 'testdata/simple_4_4_beat_trailing_text.txt',
+                             'expected_midi' : 'testdata/simple_4_4_beat.mid'}),
 ]
 
 

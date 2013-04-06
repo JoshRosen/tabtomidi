@@ -106,7 +106,9 @@ DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
     'h'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Closed Hi-Hat'],
     'R'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
     'Rd' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
+    'RC' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Ride Cymbal 1'],
     'S'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
+    'SN' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
     's'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
     'Sd'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Acoustic Snare'],
     # Not sure about this
@@ -114,6 +116,7 @@ DEFAULT_NOTE_NAME_TO_NUMBER_MAP = {
     'T'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Tom'],
     'T1' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Tom'],
     'T2' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Low Tom'],
+    'T3' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['High Floor Tom'],
     'Tm'  : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Tambourine'],
     'sp' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Splash Cymbal'],
     'Sp' : GM_SPEC_NOTE_NAME_TO_NUMBER_MAP['Splash Cymbal'],

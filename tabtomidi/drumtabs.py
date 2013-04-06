@@ -178,15 +178,19 @@ class Tab(object):
             if c - (self.divisions_in_bar + 1) > 0:
                 c -= (self.divisions_in_bar + 1)
             while c < len(tab[r]) - 1:
+                next_vertical_line = self._find_vertical_line(c+1, r)
+                if next_vertical_line:
+                    num_cols_to_parse = next_vertical_line - c - 1
+                else:
+                    num_cols_to_parse = 0
                 if has_repetitions and not ignore_repetition:
                     # Determine the length of the repeated section.
-                    num_cols_to_parse = len(tab[repetition_info][c+1:].split('|', 1)[0])
-                    if num_cols_to_parse == 0:
-                        num_cols_to_parse = self._find_vertical_line(c+1, r) - c - 1
+                    repetition_cols = len(tab[repetition_info][c+1:].split('|', 1)[0])
+                    if repetition_cols != 0:
+                        num_cols_to_parse = repetition_cols
                     # Determine how many times the section is repeated.
                     repetitions = self._calculate_repetitions(repetition_info, c)
                 else:
-                    num_cols_to_parse = self._find_vertical_line(c+1, r) - c - 1
                     repetitions = 1
                 for _ in xrange(repetitions):
                     for t in xrange(1, num_cols_to_parse+1):
